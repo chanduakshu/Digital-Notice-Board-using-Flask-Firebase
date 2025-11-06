@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Digital Notice Board</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-bullhorn me-2"></i>Digital Notice Board
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/analytics">Analytics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin">Admin</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="bg-gradient text-white text-center py-4">
+        <div class="container">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-chart-line me-3"></i>Analytics Dashboard
+            </h1>
+            <p class="lead">Real-time insights and data visualization</p>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-primary shadow">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-uppercase mb-0">Total Notices</h6>
+                                <h2 class="fw-bold mb-0" id="totalNotices">0</h2>
+                            </div>
+                            <div class="display-4">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-danger shadow">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-uppercase mb-0">High Priority</h6>
+                                <h2 class="fw-bold mb-0" id="highPriority">0</h2>
+                            </div>
+                            <div class="display-4">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-warning shadow">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-uppercase mb-0">Medium Priority</h6>
+                                <h2 class="fw-bold mb-0" id="mediumPriority">0</h2>
+                            </div>
+                            <div class="display-4">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-success shadow">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-title text-uppercase mb-0">Low Priority</h6>
+                                <h2 class="fw-bold mb-0" id="lowPriority">0</h2>
+                            </div>
+                            <div class="display-4">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-pie-chart me-2"></i>Notices by Category
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Priority Distribution
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="row mb-4">
+            <div class="col-md-12 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>Notices Timeline (Last 7 Days)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plotly Charts -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-area me-2"></i>3D Visualization - Plotly
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="plotlyChart"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-database me-2"></i>Category Heatmap
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="heatmapChart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-table me-2"></i>Recent Activity Log
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Priority</th>
+                                        <th>Author</th>
+                                        <th>Date & Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activityLog">
+                                    <tr>
+                                        <td colspan="5" class="text-center">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize charts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAnalytics();
+            setInterval(loadAnalytics, 60000); // Refresh every minute
+        });
+
+        let categoryChart, priorityChart, timelineChart;
+
+        async function loadAnalytics() {
+            try {
+                // Load priority statistics
+                const priorityResponse = await fetch('/api/analytics/priority-stats');
+                const priorityData = await priorityResponse.json();
+                
+                document.getElementById('highPriority').textContent = priorityData.high;
+                document.getElementById('mediumPriority').textContent = priorityData.medium;
+                document.getElementById('lowPriority').textContent = priorityData.low;
+                document.getElementById('totalNotices').textContent = 
+                    priorityData.high + priorityData.medium + priorityData.low;
+
+                // Load and render charts
+                await loadCategoryChart();
+                await loadPriorityChart();
+                await loadTimelineChart();
+                await loadPlotlyCharts();
+                await loadActivityLog();
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        async function loadCategoryChart() {
+            const response = await fetch('/api/analytics/category-distribution');
+            const data = await response.json();
+
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            
+            if (categoryChart) categoryChart.destroy();
+            
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.values,
+                        backgroundColor: [
+                            '#0d6efd',
+                            '#198754',
+                            '#ffc107',
+                            '#dc3545',
+                            '#6f42c1'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Distribution of Notices by Category'
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadPriorityChart() {
+            const response = await fetch('/api/analytics/priority-stats');
+            const data = await response.json();
+
+            const ctx = document.getElementById('priorityChart').getContext('2d');
+            
+            if (priorityChart) priorityChart.destroy();
+            
+            priorityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['High', 'Medium', 'Low'],
+                    datasets: [{
+                        label: 'Number of Notices',
+                        data: [data.high, data.medium, data.low],
+                        backgroundColor: [
+                            '#dc3545',
+                            '#ffc107',
+                            '#198754'
+                        ],
+                        borderColor: [
+                            '#dc3545',
+                            '#ffc107',
+                            '#198754'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Notices by Priority Level'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadTimelineChart() {
+            const response = await fetch('/api/analytics/timeline');
+            const data = await response.json();
+
+            const ctx = document.getElementById('timelineChart').getContext('2d');
+            
+            if (timelineChart) timelineChart.destroy();
+            
+            timelineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.dates,
+                    datasets: [{
+                        label: 'Notices Posted',
+                        data: data.counts,
+                        fill: true,
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        borderColor: '#0d6efd',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointBackgroundColor: '#0d6efd',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true
+                        },
+                        title: {
+                            display: true,
+                            text: 'Notice Posting Activity Over Time'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadPlotlyCharts() {
+            // 3D Scatter Plot
+            const categoryResponse = await fetch('/api/analytics/category-distribution');
+            const categoryData = await categoryResponse.json();
+
+            const trace1 = {
+                x: categoryData.labels,
+                y: categoryData.values,
+                z: categoryData.values.map(v => Math.random() * 10),
+                mode: 'markers',
+                marker: {
+                    size: categoryData.values.map(v => v * 5),
+                    color: categoryData.values,
+                    colorscale: 'Viridis',
+                    showscale: true
+                },
+                type: 'scatter3d'
+            };
+
+            const layout1 = {
+                title: 'Category Analysis in 3D Space',
+                autosize: true,
+                margin: { l: 0, r: 0, b: 0, t: 40 }
+            };
+
+            Plotly.newPlot('plotlyChart', [trace1], layout1, {responsive: true});
+
+            // Heatmap
+            const timelineResponse = await fetch('/api/analytics/timeline');
+            const timelineData = await timelineResponse.json();
+
+            const heatmapData = [{
+                z: [timelineData.counts],
+                x: timelineData.dates,
+                y: ['Notices'],
+                type: 'heatmap',
+                colorscale: 'Portland'
+            }];
+
+            const layout2 = {
+                title: 'Activity Heatmap',
+                autosize: true,
+                margin: { l: 100, r: 50, b: 100, t: 40 }
+            };
+
+            Plotly.newPlot('heatmapChart', heatmapData, layout2, {responsive: true});
+        }
+
+        async function loadActivityLog() {
+            const response = await fetch('/api/notices');
+            const notices = await response.json();
+
+            const tbody = document.getElementById('activityLog');
+            tbody.innerHTML = '';
+
+            if (notices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No activity found</td></tr>';
+                return;
+            }
+
+            notices.slice(0, 10).forEach(notice => {
+                const row = document.createElement('tr');
+                const date = new Date(notice.timestamp);
+                
+                const priorityBadge = {
+                    high: 'danger',
+                    medium: 'warning',
+                    low: 'success'
+                };
+
+                row.innerHTML = `
+                    <td>${notice.title}</td>
+                    <td><span class="badge bg-primary">${notice.category}</span></td>
+                    <td><span class="badge bg-${priorityBadge[notice.priority]}">${notice.priority}</span></td>
+                    <td>${notice.author || 'Admin'}</td>
+                    <td>${date.toLocaleString()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>

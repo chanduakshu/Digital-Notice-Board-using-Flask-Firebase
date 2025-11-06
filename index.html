@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>welcome to Digital Notice Board</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-lg"
+     style="padding: 28px 2rem; font-size: 1.25rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="/" 
+           style="font-size: 1.7rem; letter-spacing: 0.5px;">
+            <i class="fas fa-bullhorn me-2"></i>Lets we connect you Buddy❤️....
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/" style="padding: 0.75rem 1.5rem;">HOME</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/analytics" style="padding: 0.75rem 1.5rem;">ANALYTICS</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin" style="padding: 0.75rem 1.5rem;">ADMIN</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+    <!-- Header Section -->
+    <div class="hero-section text-white text-center py-5">
+        
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">
+                <i class="fas fa-newspaper me-3"></i>Welcome to Digital Notice Board
+            </h1>
+            <p class="lead">Stay updated with the latest announcements and notices</p>
+            <div class="mt-4">
+                <input type="text" id="searchInput" class="form-control form-control-lg w-50 mx-auto" 
+                       placeholder="Search notices...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <label class="form-label">Filter by Category:</label>
+                                <select id="categoryFilter" class="form-select">
+                                    <option value="">All Categories</option>
+                                    <option value="general">General</option>
+                                    <option value="events">Events</option>
+                                    <option value="announcements">Announcements</option>
+                                    <option value="updates">Updates</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Filter by Priority:</label>
+                                <select id="priorityFilter" class="form-select">
+                                    <option value="">All Priorities</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Sort by:</label>
+                                <select id="sortBy" class="form-select">
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                    <option value="priority">Priority</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notices Section -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold">
+                        <i class="fas fa-list me-2"></i>Latest Notices
+                    </h2>
+                    <button class="btn btn-primary" onclick="refreshNotices()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                </div>
+                
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Loading notices...</p>
+                </div>
+
+                <!-- Notices Container -->
+                <div id="noticesContainer" class="row" style="display: none;">
+                    <!-- Notices will be dynamically loaded here -->
+                </div>
+
+                <!-- No Results Message -->
+                <div id="noResults" class="alert alert-info text-center" style="display: none;">
+                    <i class="fas fa-info-circle me-2"></i>No notices found matching your criteria.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notice Modal -->
+    <div class="modal fade" id="noticeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody"></div>
+                <div class="modal-footer">
+                    <span class="text-muted" id="modalFooter"></span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">
+                <i class="fas fa-code me-2"></i>Digital Notice Board System | 
+                Built with Flask & Firebase | 
+                <i class="fas fa-clock me-2"></i><span id="currentTime"></span>
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNotices();
+            updateTime();
+            setInterval(updateTime, 1000);
+            setInterval(loadNotices, 30000); // Auto-refresh every 30 seconds
+            
+            // Add event listeners
+            document.getElementById('searchInput').addEventListener('input', filterNotices);
+            document.getElementById('categoryFilter').addEventListener('change', filterNotices);
+            document.getElementById('priorityFilter').addEventListener('change', filterNotices);
+            document.getElementById('sortBy').addEventListener('change', filterNotices);
+        });
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleString();
+        }
+
+        let allNotices = [];
+
+        async function loadNotices() {
+            try {
+                const response = await fetch('/api/notices');
+                allNotices = await response.json();
+                filterNotices();
+            } catch (error) {
+                console.error('Error loading notices:', error);
+                document.getElementById('loadingSpinner').style.display = 'none';
+                document.getElementById('noResults').style.display = 'block';
+                document.getElementById('noResults').innerHTML = 
+                    '<i class="fas fa-exclamation-triangle me-2"></i>Error loading notices. Please try again.';
+            }
+        }
+
+        function filterNotices() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            let filtered = allNotices.filter(notice => {
+                const matchesSearch = !searchTerm || 
+                    notice.title.toLowerCase().includes(searchTerm) ||
+                    notice.content.toLowerCase().includes(searchTerm);
+                const matchesCategory = !categoryFilter || notice.category === categoryFilter;
+                const matchesPriority = !priorityFilter || notice.priority === priorityFilter;
+                
+                return matchesSearch && matchesCategory && matchesPriority;
+            });
+
+            // Sort notices
+            filtered.sort((a, b) => {
+                if (sortBy === 'newest') {
+                    return new Date(b.timestamp) - new Date(a.timestamp);
+                } else if (sortBy === 'oldest') {
+                    return new Date(a.timestamp) - new Date(b.timestamp);
+                } else if (sortBy === 'priority') {
+                    const priorityOrder = { high: 3, medium: 2, low: 1 };
+                    return priorityOrder[b.priority] - priorityOrder[a.priority];
+                }
+            });
+
+            displayNotices(filtered);
+        }
+
+        function displayNotices(notices) {
+            const container = document.getElementById('noticesContainer');
+            const spinner = document.getElementById('loadingSpinner');
+            const noResults = document.getElementById('noResults');
+
+            spinner.style.display = 'none';
+
+            if (notices.length === 0) {
+                container.style.display = 'none';
+                noResults.style.display = 'block';
+                return;
+            }
+
+            noResults.style.display = 'none';
+            container.style.display = 'flex';
+            container.innerHTML = '';
+
+            notices.forEach(notice => {
+                const card = createNoticeCard(notice);
+                container.appendChild(card);
+            });
+        }
+
+        function createNoticeCard(notice) {
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4 mb-4';
+
+            const priorityColors = {
+                high: 'danger',
+                medium: 'warning',
+                low: 'success'
+            };
+
+            const priorityColor = priorityColors[notice.priority] || 'secondary';
+            const date = new Date(notice.timestamp).toLocaleDateString();
+            const time = new Date(notice.timestamp).toLocaleTimeString();
+
+            col.innerHTML = `
+                <div class="card h-100 shadow-sm notice-card" onclick="showNoticeDetails('${notice.id}')">
+                    <div class="card-header bg-${priorityColor} text-white">
+                        <span class="badge bg-light text-dark float-end">${notice.category || 'General'}</span>
+                        <strong>${notice.title}</strong>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">${truncateText(notice.content, 100)}</p>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>
+                            <i class="fas fa-user me-1"></i>${notice.author || 'Admin'} | 
+                            <i class="fas fa-calendar me-1"></i>${date} ${time}
+                        </small>
+                    </div>
+                </div>
+            `;
+
+            return col;
+        }
+
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
+        function showNoticeDetails(noticeId) {
+            const notice = allNotices.find(n => n.id === noticeId);
+            if (!notice) return;
+
+            const modal = new bootstrap.Modal(document.getElementById('noticeModal'));
+            document.getElementById('modalTitle').innerHTML = 
+                `<span class="badge bg-${notice.priority === 'high' ? 'danger' : notice.priority === 'medium' ? 'warning' : 'success'} me-2">${notice.priority.toUpperCase()}</span> ${notice.title}`;
+            document.getElementById('modalBody').innerHTML = `
+                <div class="mb-3">
+                    <span class="badge bg-primary">${notice.category || 'General'}</span>
+                </div>
+                <p>${notice.content}</p>
+            `;
+            document.getElementById('modalFooter').innerHTML = 
+                `Posted by ${notice.author || 'Admin'} on ${new Date(notice.timestamp).toLocaleString()}`;
+            
+            modal.show();
+        }
+
+        function refreshNotices() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('noticesContainer').style.display = 'none';
+            loadNotices();
+        }
+    </script>
+</body>
+</html>
